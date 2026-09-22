@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fit Express | Caja Virtual</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-light">
+
+  <nav class="navbar navbar-expand-lg bg-white border-bottom py-3">
+    <div class="container">
+      <a class="navbar-brand fw-bold fs-4 text-brand-black d-flex align-items-center" href="index.html">
+        <i class="bi bi-activity text-brand-yellow me-2 fs-3"></i>
+        <span>Fit<span class="text-brand-yellow">Express</span></span>
+      </a>
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-dark px-3 py-2 rounded-pill">
+          <i class="bi bi-person-workspace text-brand-yellow me-1"></i> Caja Web #01 | Cajero: Juan Pérez
+        </span>
+        <a href="index.html" class="btn btn-outline-dark btn-sm rounded-pill">Salir</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h3 class="fw-bold text-brand-black mb-1">Módulo de Caja Virtual</h3>
+        <p class="text-muted small mb-0">Confirmación de pagos, envío a cocina y facturación digital.</p>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <!-- Bandeja de Ventas Web Pendientes -->
+      <div class="col-lg-7">
+        <div class="card fit-card p-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-cash-stack text-brand-yellow me-2"></i>Pedidos Web Pendientes de Cobro</h5>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light small text-uppercase">
+                <tr>
+                  <th>Orden</th>
+                  <th>Cliente (RUN)</th>
+                  <th>Monto</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tablaCaja">
+                <tr id="orden-web-2002">
+                  <td><span class="fw-bold">#2002</span></td>
+                  <td>
+                    <div class="fw-semibold">Camilo Morales</div>
+                    <div class="text-muted small">18.765.432-1 | camilo@fitexpress.cl</div>
+                  </td>
+                  <td class="fw-bold text-brand-black">$13.980</td>
+                  <td>
+                    <button class="btn btn-fit-primary btn-sm" onclick="cargarBoleta('2002', 'Camilo Morales', '18.765.432-1', 'camilo@fitexpress.cl', '2x Chicken Power Quinoa', 13980)">
+                      <i class="bi bi-credit-card me-1"></i> Cobrar y Emitir
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Emisión y Boleta Digital (RF 8) -->
+      <div class="col-lg-5">
+        <div class="card fit-card p-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-receipt text-brand-yellow me-2"></i>Boleta Electrónica Digital</h5>
+          
+          <div class="boleta-ticket" id="boletaPreview">
+            <div class="text-center pb-2 border-bottom mb-3">
+              <div class="fw-bold">FIT EXPRESS RESTAURANT</div>
+              <div class="small">RUT: 76.840.123-5</div>
+              <div class="small">Casa Matriz: Melipilla, Chile</div>
+              <div class="small fw-bold mt-1">BOLETA ELECTRÓNICA N° <span id="bolFolio">------</span></div>
+            </div>
+
+            <div id="bolContenido" class="small">
+              <p class="text-muted text-center py-4">Selecciona un pedido pendiente para generar la boleta digital.</p>
+            </div>
+          </div>
+
+          <div class="mt-3" id="panelAccionBoleta" style="display: none;">
+            <button class="btn btn-fit-primary w-100 fw-bold py-2 mb-2" id="btnEmitirBoleta">
+              <i class="bi bi-send-check me-1"></i> Confirmar Pago & Enviar al Correo
+            </button>
+            <p class="text-muted text-center small mb-0">
+              Al confirmar, la orden pasará inmediatamente al Encargado de Despacho y Cocina.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let ordenActual = null;
+
+    function cargarBoleta(id, cliente, run, correo, detalle, total) {
+      ordenActual = { id, cliente, run, correo, detalle, total };
+      const folio = Math.floor(100000 + Math.random() * 900000);
+      document.getElementById('bolFolio').innerText = folio;
+
+      document.getElementById('bolContenido').innerHTML = `
+        <div class="mb-1"><strong>Fecha:</strong> ${new Date().toLocaleDateString('es-CL')} ${new Date().toLocaleTimeString('es-CL')}</div>
+        <div class="mb-1"><strong>Caja:</strong> Caja Web 01 (Cajero Virtual)</div>
+        <div class="mb-1"><strong>Cliente:</strong> ${cliente}</div>
+        <div class="mb-1"><strong>RUN:</strong> ${run}</div>
+        <div class="mb-1"><strong>Correo:</strong> ${correo}</div>
+        <hr>
+        <div class="d-flex justify-content-between mb-2">
+          <span>${detalle}</span>
+          <span>$${total.toLocaleString('es-CL')}</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between fw-bold fs-6">
+          <span>TOTAL PAGADO:</span>
+          <span>$${total.toLocaleString('es-CL')}</span>
+        </div>
+      `;
+      document.getElementById('panelAccionBoleta').style.display = 'block';
+    }
+
+    document.getElementById('btnEmitirBoleta').addEventListener('click', () => {
+      if (!ordenActual) return;
+
+      alert(`¡Venta completada!\n1. Pago confirmado.\n2. Orden #${ordenActual.id} enviada a cola de cocina.\n3. Boleta digital enviada a: ${ordenActual.correo}`);
+
+      const fila = document.getElementById(`orden-web-${ordenActual.id}`);
+      if (fila) fila.remove();
+
+      document.getElementById('bolContenido').innerHTML = '<p class="text-success text-center py-4 fw-bold"><i class="bi bi-check2-circle fs-3 d-block mb-1"></i>Boleta enviada al correo del cliente con éxito.</p>';
+      document.getElementById('panelAccionBoleta').style.display = 'none';
+      ordenActual = null;
+    });
+  </script>
+</body>
+</html>
