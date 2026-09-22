@@ -1,0 +1,122 @@
+/* ============================================================
+   FIT EXPRESS - HOJA DE ESTILOS BASE (BOOTSTRAP 5 EXTENSION)
+   Paleta: Blanco (#ffffff), Negro (#111111), Acento Ámbar (#f59e0b)
+   ============================================================ */
+
+:root {
+  --fit-bg: #ffffff;
+  --fit-black: #111111;
+  --fit-gray-dark: #222222;
+  --fit-gray-light: #f9fafb;
+  --fit-border: #e5e7eb;
+  --fit-yellow: #f59e0b;
+  --fit-yellow-hover: #d97706;
+  --fit-yellow-light: #fef3c7;
+  --fit-yellow-dark: #b45309;
+}
+
+body {
+  background-color: var(--fit-bg);
+  color: var(--fit-black);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -0.015em;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+/* Tipografía de marca */
+.text-brand-black { color: var(--fit-black) !important; }
+.text-brand-yellow { color: var(--fit-yellow) !important; }
+.bg-brand-yellow { background-color: var(--fit-yellow) !important; }
+.bg-brand-yellow-subtle { background-color: var(--fit-yellow-light) !important; }
+
+/* Botones con bordes redondeados (estilo minimalista) */
+.btn-fit-primary {
+  background-color: var(--fit-yellow);
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: none;
+  padding: 0.6rem 1.6rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-fit-primary:hover {
+  background-color: var(--fit-yellow-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-fit-outline {
+  border: 1.5px solid var(--fit-black);
+  color: var(--fit-black);
+  background-color: transparent;
+  border-radius: 9999px;
+  font-weight: 600;
+  padding: 0.55rem 1.4rem;
+  transition: all 0.2s ease;
+}
+
+.btn-fit-outline:hover {
+  background-color: var(--fit-black);
+  color: #ffffff;
+}
+
+/* Tarjetas de productos y paneles */
+.fit-card {
+  background: #ffffff;
+  border: 1px solid var(--fit-border);
+  border-radius: 1.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fit-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.05);
+}
+
+.fit-badge-tag {
+  background-color: var(--fit-yellow-light);
+  color: var(--fit-yellow-dark);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+}
+
+/* Formato Boleta Digital */
+.boleta-ticket {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: #fafafa;
+  border: 1px dashed #cccccc;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+/* Reglas de impresión para comanda de despacho (RF 13) */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .comanda-print-zone, .comanda-print-zone * {
+    visibility: visible;
+  }
+  .comanda-print-zone {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    font-size: 14px;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
