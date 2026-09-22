@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fit Express | Reporte de Ventas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-light">
+
+  <nav class="navbar navbar-expand-lg bg-white border-bottom py-3">
+    <div class="container">
+      <a class="navbar-brand fw-bold fs-4 text-brand-black d-flex align-items-center" href="index.html">
+        <i class="bi bi-activity text-brand-yellow me-2 fs-3"></i>
+        <span>Fit<span class="text-brand-yellow">Express</span></span>
+      </a>
+      <div class="d-flex align-items-center gap-3">
+        <a href="admin-productos.html" class="btn btn-outline-dark btn-sm rounded-pill">Mantenedor Productos</a>
+        <a href="index.html" class="btn btn-outline-dark btn-sm rounded-pill">Salir</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h3 class="fw-bold text-brand-black mb-1">Reporte de Ventas por Período</h3>
+        <p class="text-muted small mb-0">Módulo exclusivo para el dueño del restaurant.</p>
+      </div>
+    </div>
+
+    <!-- Filtro de Período (RF 9) -->
+    <div class="card fit-card p-4 mb-4">
+      <form class="row g-3 align-items-end" id="formFiltroVentas">
+        <div class="col-md-4">
+          <label for="fechaInicio" class="form-label small fw-semibold">Fecha de Inicio</label>
+          <input type="date" class="form-control" id="fechaInicio" value="2026-09-01">
+        </div>
+        <div class="col-md-4">
+          <label for="fechaFin" class="form-label small fw-semibold">Fecha de Fin</label>
+          <input type="date" class="form-control" id="fechaFin" value="2026-09-22">
+        </div>
+        <div class="col-md-4">
+          <button type="button" class="btn btn-fit-primary w-100 fw-semibold" onclick="alert('Consulta de período actualizada.')">
+            <i class="bi bi-funnel me-1"></i> Filtrar Ventas
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Métricas del Período -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-4">
+        <div class="card fit-card p-3 border-start border-4 border-warning">
+          <div class="text-muted small">Total Ventas Período</div>
+          <h4 class="fw-bold text-brand-black mb-0">$1.450.800</h4>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card fit-card p-3 border-start border-4 border-dark">
+          <div class="text-muted small">Órdenes Pagadas</div>
+          <h4 class="fw-bold text-brand-black mb-0">168</h4>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card fit-card p-3 border-start border-4 border-danger">
+          <div class="text-muted small">Órdenes Anuladas</div>
+          <h4 class="fw-bold text-brand-black mb-0">3</h4>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Ventas -->
+    <div class="card fit-card p-4">
+      <h5 class="fw-bold mb-3">Detalle de Transacciones</h5>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light small text-uppercase">
+            <tr>
+              <th>Fecha/Hora</th>
+              <th>Boleta N°</th>
+              <th>Cliente</th>
+              <th>Cajero / Caja</th>
+              <th>Total</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>22/09/2026 13:45</td>
+              <td><strong>#542109</strong></td>
+              <td>Sofía Contreras</td>
+              <td>Caja Web 01</td>
+              <td class="fw-bold text-brand-black">$9.980</td>
+              <td><span class="badge bg-success">Pagada</span></td>
+            </tr>
+            <tr>
+              <td>22/09/2026 13:52</td>
+              <td><strong>#542110</strong></td>
+              <td>Camilo Morales</td>
+              <td>Caja Web 01</td>
+              <td class="fw-bold text-brand-black">$13.980</td>
+              <td><span class="badge bg-success">Pagada</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
