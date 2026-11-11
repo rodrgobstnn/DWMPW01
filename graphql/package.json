@@ -1,0 +1,24 @@
+{
+  "name": "graphql",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "GraphQL Gateway Agregador Fit Express",
+  "dependencies": {
+    "apollo-server-express": "^3.13.0",
+    "axios": "^1.7.7",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "graphql": "15.10.1",
+    "mongoose": "8.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
