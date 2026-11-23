@@ -7,12 +7,22 @@ from fastapi import (
     Request,
     Response
 )
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import (
     HTTPBearer,
     HTTPAuthorizationCredentials
 )
 
 app = FastAPI(title="Fit Express - Production API Gateway")
+
+# Habilitar CORS para permitir peticiones desde Frontend en XAMPP/Apache
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 security = HTTPBearer(auto_error=False)
 
@@ -147,6 +157,9 @@ async def proxy_router(
     user_roles = auth["roles"]
     
     # Control de roles en Gateway (Módulo 4: RBAC)
+    if service == "inventory" and request.method != "GET" and not any(r in user_roles for r in ["ADMIN", "OWNER"]):
+        raise HTTPException(status_code=403, detail="Acceso denegado: Solo Administradores pueden modificar el catálogo")
+
     if service == "payments" and not any(r in user_roles for r in ["CASHIER", "ADMIN"]):
         raise HTTPException(status_code=403, detail="Acceso denegado: Se requiere rol Cajero o Admin")
         

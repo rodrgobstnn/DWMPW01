@@ -55,6 +55,12 @@ def verificar_gateway(x_gateway_secret: str = Header(default="")):
 # ==========================================
 # 1. SUBSISTEMA INVENTORY (RF 1, RF 7)
 # ==========================================
+class NuevoProductoInput(BaseModel):
+    nombre: str
+    categoria: str
+    precio: int
+    macros: Optional[str] = "35g Proteína"
+
 @app.get("/catalog")
 def get_catalog(categoria: Optional[str] = None, onlyAvailable: bool = False):
     items = PRODUCTOS
@@ -63,6 +69,21 @@ def get_catalog(categoria: Optional[str] = None, onlyAvailable: bool = False):
     if categoria and categoria != "todos":
         items = [p for p in items if p["categoria"] == categoria]
     return items
+
+@app.post("/products", status_code=201)
+def create_product(req: NuevoProductoInput, x_gateway_secret: str = Header(default="")):
+    verificar_gateway(x_gateway_secret)
+    nuevo_id = max([p["id"] for p in PRODUCTOS], default=100) + 1
+    nuevo_prod = {
+        "id": nuevo_id,
+        "nombre": req.nombre,
+        "categoria": req.categoria,
+        "precio": req.precio,
+        "macros": req.macros,
+        "disponible": True
+    }
+    PRODUCTOS.append(nuevo_prod)
+    return nuevo_prod
 
 @app.patch("/products/{prod_id}/availability")
 def set_availability(prod_id: int, available: bool, x_gateway_secret: str = Header(default="")):
