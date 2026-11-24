@@ -8,8 +8,7 @@ DATABASE_URL = os.getenv(
     "postgresql+psycopg2://postgres:postgres@localhost:5432/fitexpress_db"
 )
 
-# echo=True imprime en consola cada sentencia SQL (SELECT, INSERT, UPDATE) ejecutada en PostgreSQL
-engine = create_engine(DATABASE_URL, pool_pre_ping=True, echo=True)
+engine = create_engine(DATABASE_URL, pool_pre_ping=True, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -23,7 +22,7 @@ class ProductoDB(Base):
     precio = Column(Integer, nullable=False)
     disponible = Column(Boolean, default=True, nullable=False)
     macros = Column(String(100), default="")
-    descripcion = Column(String(500), default="")
+    desc = Column(String(500), default="")
     img = Column(String(500), default="")
 
     def to_dict(self):
@@ -34,7 +33,7 @@ class ProductoDB(Base):
             "precio": self.precio,
             "disponible": self.disponible,
             "macros": self.macros,
-            "desc": self.descripcion,
+            "desc": self.desc,
             "img": self.img,
         }
 
@@ -88,7 +87,7 @@ def init_db_and_seed():
                     precio=6990,
                     disponible=True,
                     macros="45g Proteína | 510 kcal",
-                    descripcion="Pechuga de pollo grillada en salsa teriyaki baja en sodio, quinoa tricolor, palta fresca, edamame y sésamo tostado.",
+                    desc="Pechuga de pollo grillada en salsa teriyaki baja en sodio, quinoa tricolor, palta fresca, edamame y sésamo tostado.",
                     img="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
                 ),
                 ProductoDB(
@@ -97,7 +96,7 @@ def init_db_and_seed():
                     precio=8490,
                     disponible=False,
                     macros="42g Proteína | 490 kcal",
-                    descripcion="Filete de salmón austral sellado a la plancha sobre base de espinaca baby, palta hass, pepino y aderezo cítrico de oliva.",
+                    desc="Filete de salmón austral sellado a la plancha sobre base de espinaca baby, palta hass, pepino y aderezo cítrico de oliva.",
                     img="https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=600&auto=format&fit=crop&q=80",
                 ),
                 ProductoDB(
@@ -106,7 +105,7 @@ def init_db_and_seed():
                     precio=7490,
                     disponible=True,
                     macros="48g Proteína | 560 kcal",
-                    descripcion="Posta rosada magra en tiras, cubos de camote asado al romero, brócoli al vapor y hummus artesanal.",
+                    desc="Posta rosada magra en tiras, cubos de camote asado al romero, brócoli al vapor y hummus artesanal.",
                     img="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&auto=format&fit=crop&q=80",
                 ),
                 ProductoDB(
@@ -115,7 +114,7 @@ def init_db_and_seed():
                     precio=2490,
                     disponible=True,
                     macros="20g Proteína | 210 kcal",
-                    descripcion="Pack de 2 barritas horneadas con proteína whey, mantequilla de maní natural, avena integral y cacao 70%.",
+                    desc="Pack de 2 barritas horneadas con proteína whey, mantequilla de maní natural, avena integral y cacao 70%.",
                     img="https://images.unsplash.com/photo-1622484212850-eb596d769edc?w=600&auto=format&fit=crop&q=80",
                 ),
             ]

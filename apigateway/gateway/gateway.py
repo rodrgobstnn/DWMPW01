@@ -46,11 +46,9 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 async def validar_token_y_rol(request: Request, require_admin: bool = False) -> dict:
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
-        print("[API-GATEWAY] BLOQUEADO: Petición sin token Bearer.")
         raise HTTPException(status_code=401, detail="Token faltante o formato inválido")
 
     token = auth_header.removeprefix("Bearer ").strip()
-    print(f"[API-GATEWAY] -> Solicitando validación de token y roles al Auth Service (:8100/introspect)...")
 
     async with httpx.AsyncClient() as client:
         try:
@@ -68,14 +66,10 @@ async def validar_token_y_rol(request: Request, require_admin: bool = False) -> 
 
     session_data = resp.json()
     if not session_data.get("active"):
-        print("[API-GATEWAY] <- Auth Service rechazó el token (expirado o inválido).")
         raise HTTPException(status_code=401, detail="Sesión expirada o token inválido")
 
     roles = [str(r).upper() for r in session_data.get("roles", [])]
-    print(f"[API-GATEWAY] <- Auth Service aprobó sesión: usuario={session_data.get('username')} | roles={roles}")
-
     if require_admin and not any(r in {"ADMIN", "OWNER"} for r in roles):
-        print(f"[API-GATEWAY] BLOQUEADO (403): Usuario {session_data.get('username')} no tiene rol ADMIN/OWNER.")
         raise HTTPException(status_code=403, detail="Acceso denegado: Se requiere rol de administrador")
 
     return session_data
@@ -83,7 +77,6 @@ async def validar_token_y_rol(request: Request, require_admin: bool = False) -> 
 
 @app.post("/api/v1/upload-image")
 async def upload_product_image(request: Request, file: UploadFile = File(...)):
-    print("\n[API-GATEWAY] Petición recibida desde Frontend: POST /api/v1/upload-image")
     await validar_token_y_rol(request, require_admin=True)
 
     allowed_ext = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
@@ -98,7 +91,6 @@ async def upload_product_image(request: Request, file: UploadFile = File(...)):
     with open(filepath, "wb") as f:
         f.write(content)
 
-    print(f"[API-GATEWAY] Imagen guardada localmente en /app/uploads/{filename}")
     return {"url": f"/app/uploads/{filename}"}
 
 
@@ -111,8 +103,6 @@ async def gateway_proxy(service: str, path: str, request: Request):
     method = request.method.upper()
     is_public = (method, full_path) in PUBLIC_ENDPOINTS
 
-    print(f"\n[API-GATEWAY] Petición recibida desde Frontend: {method} {full_path}")
-
     user_headers = {}
     if not is_public:
         require_admin = (
@@ -123,15 +113,11 @@ async def gateway_proxy(service: str, path: str, request: Request):
         user_headers["X-Authenticated-User-Id"] = str(session_data.get("user_id", ""))
         user_headers["X-User-Email"] = str(session_data.get("username", ""))
         user_headers["X-User-Roles"] = ",".join(session_data.get("roles", []))
-    else:
-        print(f"[API-GATEWAY] Ruta pública ({method} {full_path}), omitiendo introspección JWT.")
 
     target_base = SERVICES[service]
     target_url = f"{target_base}/{path}"
     if request.url.query:
         target_url = f"{target_url}?{request.url.query}"
-
-    print(f"[API-GATEWAY] -> Enrutando petición hacia Backend [{service.upper()}] en {target_url} con secreto Zero-Trust")
 
     forward_headers = {
         k: v
@@ -155,8 +141,6 @@ async def gateway_proxy(service: str, path: str, request: Request):
             )
         except httpx.RequestError as exc:
             raise HTTPException(status_code=502, detail=f"Error con microservicio '{service}': {exc}")
-
-    print(f"[API-GATEWAY] <- Respuesta de [{service.upper()}]: HTTP {proxy_resp.status_code}")
 
     excluded_headers = {"content-encoding", "content-length", "transfer-encoding", "connection"}
     resp_headers = {

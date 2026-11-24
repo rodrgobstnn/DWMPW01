@@ -1,6 +1,6 @@
 import os
 import secrets
-from typing import List, Optional
+from typing import List
 from fastapi import FastAPI, HTTPException, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -30,12 +30,10 @@ GATEWAY_SECRET = os.getenv("GATEWAY_SECRET", "fit_shared_secret_2026")
 
 def verificar_gateway(x_gateway_secret: str = Header(default="")):
     if not secrets.compare_digest(x_gateway_secret, GATEWAY_SECRET):
-        print("\n[BACKEND-CORE] BLOQUEADO (403): Llamada directa sin secreto válido X-Gateway-Secret.")
         raise HTTPException(
             status_code=403,
             detail="Acceso denegado: El microservicio solo acepta llamadas a través del API Gateway"
         )
-    print("\n[BACKEND-CORE] Secreto Zero-Trust X-Gateway-Secret VERIFICADO OK. Ejecutando consulta en PostgreSQL...")
 
 
 @app.on_event("startup")
@@ -71,8 +69,6 @@ class PagoInput(BaseModel):
     metodo_pago: str
 
 
-# ================= CATÁLOGO E INVENTARIO =================
-
 @app.get("/catalog")
 def get_catalog(
     onlyAvailable: bool = True,
@@ -107,13 +103,12 @@ def create_product(
         precio=data.precio,
         disponible=True,
         macros=data.macros,
-        descripcion=data.desc,
+        desc=data.desc,
         img=data.img,
     )
     db.add(nuevo)
     db.commit()
     db.refresh(nuevo)
-    print(f"[BACKEND-CORE] Producto ID #{nuevo.id} ('{nuevo.nombre}') persistido en PostgreSQL.")
     return nuevo.to_dict()
 
 
@@ -132,13 +127,12 @@ def update_product(
     prod.categoria = data.categoria
     prod.precio = data.precio
     prod.macros = data.macros
-    prod.descripcion = data.desc
+    prod.desc = data.desc
     if data.img is not None:
         prod.img = data.img
 
     db.commit()
     db.refresh(prod)
-    print(f"[BACKEND-CORE] Producto ID #{prod.id} actualizado en PostgreSQL.")
     return prod.to_dict()
 
 
@@ -156,11 +150,8 @@ def toggle_availability(
     prod.disponible = available
     db.commit()
     db.refresh(prod)
-    print(f"[BACKEND-CORE] Disponibilidad de producto ID #{prod.id} cambiada a {available} en PostgreSQL.")
     return prod.to_dict()
 
-
-# ================= ÓRDENES Y PAGOS =================
 
 @app.post("/orders", status_code=201)
 def crear_orden(
