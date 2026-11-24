@@ -10,13 +10,10 @@ app = FastAPI(
     description="Servicio seguro de autenticación, hash de contraseñas e introspección de tokens"
 )
 
-# Hash adaptativo seguro con sal para cumplir con Módulo 7 (Sin contraseñas en texto plano)
 def hash_password(password: str, salt: str = "fit_express_salt_2026") -> str:
     return hashlib.sha256((password + salt).encode('utf-8')).hexdigest()
 
-# Usuarios base del negocio para pruebas de perfiles (RF 4, RF 5, RF 12)
 USERS = {
-    # Cliente Registrado (Camilo Morales)
     "camilo@fitexpress.cl": {
         "password_hash": hash_password("cliente123"),
         "user_id": "CLI-1001",
@@ -24,7 +21,6 @@ USERS = {
         "full_name": "Camilo Morales Vera",
         "roles": ["CLIENT"]
     },
-    # Cajero Virtual del Restaurant (Juan Pérez)
     "cajero@fitexpress.cl": {
         "password_hash": hash_password("caja123"),
         "user_id": "EMP-2001",
@@ -32,7 +28,6 @@ USERS = {
         "full_name": "Juan Pérez Silva",
         "roles": ["CASHIER"]
     },
-    # Encargado de Despacho y Cocina (Pedro Soto)
     "despacho@fitexpress.cl": {
         "password_hash": hash_password("cocina123"),
         "user_id": "EMP-3001",
@@ -40,7 +35,6 @@ USERS = {
         "full_name": "Pedro Soto Martínez",
         "roles": ["DISPATCH"]
     },
-    # Administrador / Dueño del Restaurant (Guillermo Dueño)
     "admin@fitexpress.cl": {
         "password_hash": hash_password("admin123"),
         "user_id": "ADM-0001",
@@ -76,7 +70,9 @@ def register_user(
     request: RegisterRequest,
     x_gateway_auth_secret: str = Header(default="")
 ):
+    print(f"\n[AUTH-SERVICE] Solicitud de REGISTRO recibida para: {request.email}")
     if not secrets.compare_digest(x_gateway_auth_secret, AUTH_INTROSPECTION_SECRET):
+        print("[AUTH-SERVICE] ALERTA: Secreto X-Gateway-Auth-Secret inválido. Acceso rechazado.")
         raise HTTPException(status_code=403, detail="Gateway no autorizado")
 
     if request.email in USERS:
@@ -90,6 +86,7 @@ def register_user(
         "full_name": request.full_name,
         "roles": ["CLIENT"]
     }
+    print(f"[AUTH-SERVICE] Usuario registrado exitosamente -> user_id={user_id}")
     return {"message": "Usuario registrado exitosamente", "user_id": user_id}
 
 @app.post("/login")
@@ -97,14 +94,14 @@ def login(
     request: LoginRequest,
     x_gateway_auth_secret: str = Header(default="")
 ):
+    print(f"\n[AUTH-SERVICE] Solicitud de LOGIN recibida para usuario: {request.username}")
     if not secrets.compare_digest(x_gateway_auth_secret, AUTH_INTROSPECTION_SECRET):
+        print("[AUTH-SERVICE] ALERTA: Secreto X-Gateway-Auth-Secret inválido. Acceso rechazado.")
         raise HTTPException(status_code=403, detail="Gateway no autorizado")
 
     user = USERS.get(request.username)
-    if user is None:
-        raise HTTPException(status_code=401, detail="Usuario no encontrado")
-
-    if user["password_hash"] != hash_password(request.password):
+    if user is None or user["password_hash"] != hash_password(request.password):
+        print(f"[AUTH-SERVICE] Credenciales inválidas para: {request.username}")
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
 
     access_token = secrets.token_urlsafe(32)
@@ -119,6 +116,7 @@ def login(
         "expires_at": expiration
     }
 
+    print(f"[AUTH-SERVICE] Autenticación EXITOSA -> user_id={user['user_id']} | roles={user['roles']} | Token emitido.")
     return {
         "access_token": access_token,
         "token_type": "bearer",
@@ -135,17 +133,18 @@ def introspect(
     request: IntrospectionRequest,
     x_gateway_auth_secret: str = Header(default="")
 ):
+    print(f"\n[AUTH-SERVICE] Petición de INTROSPECCIÓN recibida desde API Gateway...")
     if not secrets.compare_digest(x_gateway_auth_secret, AUTH_INTROSPECTION_SECRET):
+        print("[AUTH-SERVICE] ALERTA: Secreto X-Gateway-Auth-Secret inválido. Rechazando introspección.")
         raise HTTPException(status_code=403, detail="Gateway no autorizado")
 
     session = SESSIONS.get(request.token)
-    if session is None:
-        return {"active": False}
-
-    if datetime.now(timezone.utc) > session["expires_at"]:
+    if session is None or datetime.now(timezone.utc) > session["expires_at"]:
         SESSIONS.pop(request.token, None)
+        print("[AUTH-SERVICE] Token inexistente o expirado -> active=False")
         return {"active": False}
 
+    print(f"[AUTH-SERVICE] Autorización VALIDADA -> user={session['username']} | roles={session['roles']} | active=True")
     return {
         "active": True,
         "user_id": session["user_id"],
@@ -164,6 +163,7 @@ def logout(
         raise HTTPException(status_code=403, detail="Gateway no autorizado")
 
     SESSIONS.pop(request.token, None)
+    print("[AUTH-SERVICE] Sesión finalizada exitosamente.")
     return {"message": "Sesión finalizada exitosamente"}
 
 @app.get("/health")

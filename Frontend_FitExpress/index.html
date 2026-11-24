@@ -29,15 +29,15 @@
           <li class="nav-item"><a class="nav-link text-brand-black px-3" href="#menu">Menú</a></li>
           <li class="nav-item"><a class="nav-link text-muted px-3" href="mis-pedidos.html">Mis Pedidos</a></li>
           <li class="nav-item"><a class="nav-link text-muted px-3" href="#" data-bs-toggle="modal" data-bs-target="#modalAyuda">Ayuda</a></li>
-          <li class="nav-item dropdown">
+          <li class="nav-item dropdown d-none" id="navAccesoFuncionarios">
             <a class="nav-link dropdown-toggle text-muted px-3" href="#" role="button" data-bs-toggle="dropdown">
               Acceso Funcionarios
             </a>
             <ul class="dropdown-menu border-0 shadow-sm">
-              <li><a class="dropdown-item" href="caja.html"><i class="bi bi-cash-stack text-brand-yellow me-2"></i>Caja Virtual</a></li>
-              <li><a class="dropdown-item" href="despacho.html"><i class="bi bi-truck text-brand-yellow me-2"></i>Despacho / Cocina</a></li>
-              <li><a class="dropdown-item" href="admin-productos.html"><i class="bi bi-box-seam text-brand-yellow me-2"></i>Mantenedor Productos</a></li>
-              <li><a class="dropdown-item" href="reportes.html"><i class="bi bi-graph-up text-brand-yellow me-2"></i>Reportes de Ventas</a></li>
+              <li class="d-none" id="itemCaja"><a class="dropdown-item" href="caja.html"><i class="bi bi-cash-stack text-brand-yellow me-2"></i>Caja Virtual</a></li>
+              <li class="d-none" id="itemDespacho"><a class="dropdown-item" href="despacho.html"><i class="bi bi-truck text-brand-yellow me-2"></i>Despacho / Cocina</a></li>
+              <li class="d-none" id="itemAdmin"><a class="dropdown-item" href="admin-productos.html"><i class="bi bi-box-seam text-brand-yellow me-2"></i>Mantenedor Productos</a></li>
+              <li class="d-none" id="itemReportes"><a class="dropdown-item" href="reportes.html"><i class="bi bi-graph-up text-brand-yellow me-2"></i>Reportes de Ventas</a></li>
             </ul>
           </li>
         </ul>
@@ -99,8 +99,10 @@
         </div>
       </div>
 
+      <div id="alertaOrden" class="alert d-none small py-2 mb-4" role="alert"></div>
+
       <div class="row g-4" id="gridMenu">
-        <!-- Renderizado con JavaScript -->
+        <div class="col-12 text-center text-muted py-5">Cargando carta desde el servidor...</div>
       </div>
     </div>
   </main>
@@ -115,7 +117,7 @@
     </div>
     <div class="offcanvas-body d-flex flex-column">
       <div id="listaItemsCarrito" class="flex-grow-1 overflow-auto pe-1">
-        <!-- Items de orden -->
+        <p class="text-muted text-center py-5">Tu carrito está vacío.</p>
       </div>
 
       <div class="border-top pt-3 mt-auto">
@@ -165,68 +167,65 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // Catálogo maestro (RF 1, RF 7)
-    const productos = [
-      {
-        id: 101,
-        nombre: "Titanium Beef Bowl",
-        categoria: "bowls",
-        desc: "Carne magra premium, palta hass, mix de semillas, pepino y base de arroz integral.",
-        macros: "42g Proteína | 540 kcal",
-        precio: 7490,
-        disponible: true,
-        img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=80"
-      },
-      {
-        id: 102,
-        nombre: "Chicken Power Quinoa",
-        categoria: "bowls",
-        desc: "Pechuga de pollo a la plancha, quinoa crocante, tomates cherry, espinaca baby y tahini.",
-        macros: "38g Proteína | 490 kcal",
-        precio: 6990,
-        disponible: true,
-        img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500&auto=format&fit=crop&q=80"
-      },
-      {
-        id: 103,
-        nombre: "Salmon Keto Fresh",
-        categoria: "bowls",
-        desc: "Salmón grillado, huevos poché, palta fresca, sésamo negro y hojas verdes orgánicas.",
-        macros: "36g Proteína | 510 kcal",
-        precio: 8290,
-        disponible: false, // Producto no disponible (RF 7)
-        img: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500&auto=format&fit=crop&q=80"
-      },
-      {
-        id: 104,
-        nombre: "Protein Oat Bar (Cacao)",
-        categoria: "snacks",
-        desc: "Barra horneada de avena integral, proteína isolate de suero y chispas de cacao 80%.",
-        macros: "18g Proteína | 210 kcal",
-        precio: 2490,
-        disponible: true,
-        img: "https://images.unsplash.com/photo-1622484212850-eb596d769edc?w=500&auto=format&fit=crop&q=80"
-      },
-      {
-        id: 105,
-        nombre: "Peanut Butter Fit Cookies",
-        categoria: "snacks",
-        desc: "Galletas artesanales de mantequilla de maní natural, harina de almendras y sin azúcar.",
-        macros: "14g Proteína | 195 kcal",
-        precio: 2290,
-        disponible: true,
-        img: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=500&auto=format&fit=crop&q=80"
-      }
-    ];
+    const API_GATEWAY = "http://127.0.0.1:8000/api/v1";
 
+    const IMG_DEFAULT_BOWL = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=80";
+    const IMG_DEFAULT_SNACK = "https://images.unsplash.com/photo-1622484212850-eb596d769edc?w=500&auto=format&fit=crop&q=80";
+
+    let productos = [];
     let carrito = [];
+    let filtroActual = 'todos';
+
+    function mostrarAlerta(mensaje, tipo = 'success') {
+      const box = document.getElementById('alertaOrden');
+      box.className = `alert alert-${tipo} small py-2 mb-4`;
+      box.innerHTML = mensaje;
+      box.classList.remove('d-none');
+      setTimeout(() => box.classList.add('d-none'), 6000);
+    }
+
+    // Cargar catálogo real desde el microservicio de inventario (GET /api/v1/inventory/catalog)
+    async function cargarCatalogo() {
+      const grid = document.getElementById('gridMenu');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      try {
+        const res = await fetch(`${API_GATEWAY}/inventory/catalog?onlyAvailable=false`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error(`Error HTTP ${res.status} al cargar catálogo`);
+
+        const data = await res.json();
+        productos = data.map(p => ({
+          ...p,
+          desc: (p.desc && p.desc.trim() !== "") ? p.desc : `Preparación saludable (${p.macros || 'Fit'}) elaborada al momento.`,
+          img: (p.img && p.img.trim() !== "") ? p.img : (p.categoria === 'snacks' ? IMG_DEFAULT_SNACK : IMG_DEFAULT_BOWL)
+        }));
+
+        renderMenu(filtroActual);
+      } catch (err) {
+        const msg = err.name === 'AbortError'
+          ? 'Tiempo de espera agotado (5s). Verifica que gateway.py (8000) y main.py (9001) estén corriendo.'
+          : `Error al conectar con el catálogo: ${err.message}`;
+        grid.innerHTML = `<div class="col-12"><div class="alert alert-danger text-center small">${msg}</div></div>`;
+      }
+    }
 
     // Renderizado del menú
     function renderMenu(filtro = 'todos') {
+      filtroActual = filtro;
       const grid = document.getElementById('gridMenu');
       grid.innerHTML = '';
 
       const filtrados = filtro === 'todos' ? productos : productos.filter(p => p.categoria === filtro);
+
+      if (filtrados.length === 0) {
+        grid.innerHTML = '<div class="col-12 text-center text-muted py-4">No hay productos en esta categoría.</div>';
+        return;
+      }
 
       filtrados.forEach(prod => {
         const col = document.createElement('div');
@@ -236,14 +235,14 @@
             <div class="position-relative mb-3">
               <img src="${prod.img}" class="card-img-top rounded-4" style="height: 210px; object-fit: cover;" alt="${prod.nombre}">
               <span class="position-absolute top-0 end-0 m-2 badge ${prod.disponible ? 'bg-dark' : 'bg-danger'}">
-                ${prod.disponible ? prod.macros : 'Agotado'}
+                ${prod.disponible ? (prod.macros || 'Fit') : 'Agotado'}
               </span>
             </div>
             <div class="card-body p-0 d-flex flex-column">
               <h5 class="fw-bold text-brand-black mb-1">${prod.nombre}</h5>
               <p class="text-muted small flex-grow-1">${prod.desc}</p>
               <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                <span class="fs-5 fw-bold text-brand-black">$${prod.precio.toLocaleString('es-CL')}</span>
+                <span class="fs-5 fw-bold text-brand-black">$${Number(prod.precio).toLocaleString('es-CL')}</span>
                 <button class="btn btn-fit-primary btn-sm px-3" 
                         onclick="agregarItem(${prod.id})" 
                         ${!prod.disponible ? 'disabled' : ''}>
@@ -260,6 +259,8 @@
     // Funciones del carrito
     window.agregarItem = function(id) {
       const prod = productos.find(p => p.id === id);
+      if (!prod || !prod.disponible) return;
+
       const existe = carrito.find(c => c.id === id);
       if (existe) {
         existe.cantidad += 1;
@@ -300,7 +301,7 @@
         div.innerHTML = `
           <div>
             <div class="fw-bold text-brand-black">${item.nombre}</div>
-            <div class="text-muted small">$${item.precio.toLocaleString('es-CL')} x ${item.cantidad}</div>
+            <div class="text-muted small">$${Number(item.precio).toLocaleString('es-CL')} x ${item.cantidad}</div>
           </div>
           <div class="d-flex align-items-center gap-2">
             <span class="fw-semibold">$${sub.toLocaleString('es-CL')}</span>
@@ -325,38 +326,112 @@
       });
     });
 
-    // Procesar orden verificando usuario registrado (RF 4)
-    document.getElementById('btnProcesarOrden').addEventListener('click', () => {
+    // Enviar orden real al backend (POST /api/v1/orders/orders)
+    document.getElementById('btnProcesarOrden').addEventListener('click', async () => {
       if (carrito.length === 0) {
         alert("Agrega al menos un bowl o snack antes de procesar.");
         return;
       }
 
+      const token = sessionStorage.getItem('fit_token');
       const usuarioActivo = sessionStorage.getItem('fit_usuario');
-      if (!usuarioActivo) {
-        if (confirm("Por políticas del sistema, las ventas solo se realizan a clientes registrados. ¿Deseas iniciar sesión o registrarte ahora?")) {
+
+      if (!token || !usuarioActivo) {
+        if (confirm("Por políticas del sistema, las ventas solo se realizan a clientes registrados. ¿Deseas iniciar sesión ahora?")) {
           window.location.href = 'login.html';
         }
-      } else {
-        alert("¡Orden enviada a caja virtual con éxito! La preparación en cocina comenzará en cuanto el cajero valide el pago.");
+        return;
+      }
+
+      const btnOrden = document.getElementById('btnProcesarOrden');
+      btnOrden.disabled = true;
+      btnOrden.textContent = "Enviando pedido...";
+
+      const payload = {
+        items: carrito.map(item => ({
+          product_id: item.id,
+          quantity: item.cantidad,
+          notes: "Normal"
+        }))
+      };
+
+      try {
+        const res = await fetch(`${API_GATEWAY}/orders/orders`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.status === 401) {
+          sessionStorage.removeItem('fit_token');
+          sessionStorage.removeItem('fit_usuario');
+          alert("Tu sesión ha expirado. Vuelve a iniciar sesión.");
+          window.location.href = 'login.html';
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error(data.detail || "No se pudo procesar el pedido");
+        }
+
+        const offcanvasEl = document.getElementById('offcanvasCart');
+        const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasEl);
+        if (offcanvasInstance) offcanvasInstance.hide();
+
         carrito = [];
         actualizarCarrito();
+
+        mostrarAlerta(
+          `<strong>¡Orden #${data.orden_id} creada con éxito!</strong> Total calculado: <strong>$${Number(data.total).toLocaleString('es-CL')}</strong>. Estado: <code>${data.estado}</code>. Acércate a Caja Virtual para confirmar el pago.`,
+          'success'
+        );
+      } catch (err) {
+        alert(`Error al crear la orden: ${err.message}`);
+      } finally {
+        btnOrden.disabled = false;
+        btnOrden.textContent = "Confirmar y Armar Pedido";
       }
     });
 
-    // Detectar si hay sesión iniciada para actualizar header
+    // Detectar si hay sesión iniciada para actualizar header y permisos RBAC del menú
     const userSession = sessionStorage.getItem('fit_usuario');
     if (userSession) {
       const data = JSON.parse(userSession);
+      const roles = data.roles || [];
+
       document.getElementById('usuarioHeader').innerHTML = `
         <span class="badge bg-light text-dark border px-3 py-2 me-2">
           <i class="bi bi-person-circle text-brand-yellow me-1"></i> ${data.email}
         </span>
-        <button class="btn btn-outline-danger btn-sm" onclick="sessionStorage.removeItem('fit_usuario'); location.reload();">Salir</button>
+        <button class="btn btn-outline-danger btn-sm" onclick="sessionStorage.removeItem('fit_token'); sessionStorage.removeItem('fit_usuario'); location.reload();">Salir</button>
       `;
+
+      const esAdmin = roles.includes('ADMIN') || roles.includes('OWNER');
+      const esCajero = roles.includes('CASHIER');
+      const esDespacho = roles.includes('DISPATCH');
+
+      if (esAdmin || esCajero || esDespacho) {
+        document.getElementById('navAccesoFuncionarios').classList.remove('d-none');
+
+        if (esCajero || esAdmin) {
+          document.getElementById('itemCaja').classList.remove('d-none');
+        }
+        if (esDespacho || esAdmin) {
+          document.getElementById('itemDespacho').classList.remove('d-none');
+        }
+        if (esAdmin) {
+          document.getElementById('itemAdmin').classList.remove('d-none');
+          document.getElementById('itemReportes').classList.remove('d-none');
+        }
+      }
     }
 
-    renderMenu();
+    document.addEventListener('DOMContentLoaded', cargarCatalogo);
   </script>
 </body>
 </html>
